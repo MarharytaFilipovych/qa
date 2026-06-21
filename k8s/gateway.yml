@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      initContainers:
+        - name: wait-for-order-service
+          image: busybox
+          command: ['sh', '-c', 'until nc -z order-service 8088; do echo waiting for order-service; sleep 2; done']
+        - name: wait-for-user-service
+          image: busybox
+          command: ['sh', '-c', 'until nc -z user-service 8080; do echo waiting for user-service; sleep 2; done']
+        - name: wait-for-workflow-service
+          image: busybox
+          command: ['sh', '-c', 'until nc -z workflow-service 8091; do echo waiting for workflow-service; sleep 2; done']
+      containers:
+        - name: gateway
+          image: gateway:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          env:
+            - name: USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: USER_SERVICE_URL
+            - name: ORDER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: ORDER_SERVICE_URL
+            - name: WORKFLOW_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: WORKFLOW_SERVICE_URL
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8081
+      targetPort: 8081

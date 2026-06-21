@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workflow-service
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: workflow-service
+  template:
+    metadata:
+      labels:
+        app: workflow-service
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16
+          command: ['sh', '-c', 'until pg_isready -h workflow-db -p 5432; do echo waiting for workflow-db; sleep 2; done']
+      containers:
+        - name: workflow-service
+          image: workflow-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8091
+          env:
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: WORKFLOW_DB_URL
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: cafetiria-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cafetiria-secret
+                  key: DB_PASSWORD
+            - name: ORDER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: ORDER_SERVICE_URL
+          readinessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8091
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8091
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "384Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workflow-service
+spec:
+  selector:
+    app: workflow-service
+  ports:
+    - port: 8091
+      targetPort: 8091

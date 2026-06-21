@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cafetiria-config
+data:
+  ORDER_SERVICE_URL: "http://order-service:8088"
+  USER_SERVICE_URL: "http://user-service:8080"
+  USERS_URL: "http://user-service:8080/api/users/"
+  NOTIFICATION_SERVICE_URL: "http://notification-service:8090"
+  WORKFLOW_SERVICE_URL: "http://workflow-service:8091"
+  RABBITMQ_HOST: "rabbitmq"
+  RABBIT_PORT: "5672"
+  ORDER_DB_URL: "jdbc:postgresql://order-db:5432/orders"
+  USER_DB_URL: "jdbc:postgresql://user-db:5432/users"
+  NOTIFICATION_DB_URL: "jdbc:postgresql://notification-db:5432/notifications"
+  WORKFLOW_DB_URL: "jdbc:postgresql://workflow-db:5432/workflows"

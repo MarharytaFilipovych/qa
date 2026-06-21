@@ -1,0 +1,48 @@
+spring:
+  application.name: Order Service
+  datasource:
+    password: ${DB_PASSWORD}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database: postgresql
+    properties.hibernate.ddl-auto: validate
+  web:
+    resources:
+      add-mappings: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  health:
+    rabbit:
+      enabled: false
+server:
+  servlet.context-path: /api
+  port: 8088
+
+user-service.users-url: ${USERS_URL:http:/localhost:8080/api/users}
+
+rabbitmq:
+  exchange: order
+  queue: order.created
+  routing-key: order.created
+
+correlation:
+  key: correlationId
+  header: X-Correlation-Id
+
+retry:
+  maxAttempts: 5
+  backoff-delay: 300
+
+rest-client:
+  connect-timeout-ms: 3000
+  read-timeout-ms: 5000

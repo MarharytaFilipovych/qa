@@ -1,0 +1,1 @@
+ALTER TABLE notifications ALTER COLUMN correlation_id TYPE VARCHAR(255);

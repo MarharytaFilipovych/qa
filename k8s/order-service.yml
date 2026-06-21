@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: postgres:16
+          command: ['sh', '-c', 'until pg_isready -h order-db -p 5432; do echo waiting for order-db; sleep 2; done']
+        - name: wait-for-rabbitmq
+          image: busybox
+          command: ['sh', '-c', 'until nc -z rabbitmq 5672; do echo waiting for rabbitmq; sleep 2; done']
+      containers:
+        - name: order-service
+          image: order-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8088
+          env:
+            - name: DB_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: ORDER_DB_URL
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: cafetiria-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cafetiria-secret
+                  key: DB_PASSWORD
+            - name: USERS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: USERS_URL
+            - name: RABBITMQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: RABBITMQ_HOST
+            - name: RABBIT_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: cafetiria-config
+                  key: RABBIT_PORT
+          readinessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8088
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8088
+            initialDelaySeconds: 45
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "384Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: 8088
+      targetPort: 8088

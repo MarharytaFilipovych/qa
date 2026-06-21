@@ -1,0 +1,36 @@
+spring:
+  application.name: notification_service
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate.ddl-auto: validate
+    database: postgresql
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+rabbitmq:
+  queue: order.created
+  exchange: order
+  routing-key: order.created
+server:
+  port: 8090
+
+correlation:
+  key: correlationId
+  header: X-Correlation-Id
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  health:
+    rabbit:
+      enabled: false

@@ -1,0 +1,43 @@
+spring:
+  application.name: Workflow Service
+  datasource:
+    password: ${DB_PASSWORD}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database: postgresql
+    properties.hibernate.ddl-auto: validate
+  web:
+    resources:
+      add-mappings: false
+
+management.endpoint.health.show-details: always
+server:
+  servlet.context-path: /api
+  port: 8091
+
+order.service:
+  url:
+    base: ${ORDER_SERVICE_URL:http://localhost:8088}
+    create-order: /api/orders
+    change-status: /api/orders/{id}/status
+  params:
+    ownerUserId: ownerUserId
+    itemName: itemName
+    quantity: quantity
+    price: price
+    newStatus: newStatus
+    id: id
+
+retry:
+  maxAttempts: 3
+  backoff-delay: 300
+
+correlation:
+  header: X-Correlation-Id
+  key: correlationId
+
+rest-client:
+  connect-timeout-ms: 3000
+  read-timeout-ms: 5000
