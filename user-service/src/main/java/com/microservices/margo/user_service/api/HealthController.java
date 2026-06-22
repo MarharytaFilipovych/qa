@@ -1,9 +1,9 @@
 package com.microservices.margo.user_service.api;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.health.actuate.endpoint.HealthDescriptor;
-import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
-import org.springframework.boot.health.contributor.Status;
+import org.springframework.boot.actuate.health.HealthComponent;
+import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,14 +14,14 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @RestController
-@RequestMapping({"/health", "health/"})
+@RequestMapping({"/health", "/health/"})
 @RequiredArgsConstructor
 public class HealthController {
     private final HealthEndpoint healthEndpoint;
 
     @GetMapping
     public ResponseEntity<?> health() {
-        HealthDescriptor healthComponent = healthEndpoint.health();
+        HealthComponent healthComponent = healthEndpoint.health();
 
         HttpStatus status = (healthComponent.getStatus() == Status.UP)
                 ? OK : SERVICE_UNAVAILABLE;
