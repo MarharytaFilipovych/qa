@@ -15,6 +15,7 @@ public class ObjectMapperConfig {
         return JsonMapper.builder()
                 .addModule(new JavaTimeModule())
                 .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES)
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .build();
     }
 }

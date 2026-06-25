@@ -21,6 +21,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -32,89 +33,99 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleGeneralException(Exception exception) {
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception exception) {
         log.error("Unexpected exception caught in handleGeneralException", exception);
-        return new ResponseEntity<>("Unexpected exception occurred", INTERNAL_SERVER_ERROR);
+        return buildErrorResponse("Unexpected exception occurred", INTERNAL_SERVER_ERROR);
     }
 
     @ResponseStatus(METHOD_NOT_ALLOWED)
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<?> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
-        log.warn("Exception caught in handleHttpRequestMethodNotSupportedException", exception);
-        return new ResponseEntity<>(exception.getMessage(), METHOD_NOT_ALLOWED);
+    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
+        log.error("Exception caught in handleHttpRequestMethodNotSupportedException", exception);
+        return buildErrorResponse(exception.getMessage(), METHOD_NOT_ALLOWED);
     }
 
     @ResponseStatus(UNSUPPORTED_MEDIA_TYPE)
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<?> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException exception) {
-        log.warn("Exception caught in handleHttpMediaTypeNotSupportedException", exception);
-        return new ResponseEntity<>(exception.getMessage(), UNSUPPORTED_MEDIA_TYPE);
+    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException exception) {
+        log.error("Exception caught in handleHttpMediaTypeNotSupportedException", exception);
+        return buildErrorResponse(exception.getMessage(), UNSUPPORTED_MEDIA_TYPE);
     }
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<?> handleJsonParseError() {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body
-                (new ErrorResponse("Invalid JSON format in request body"));
+    public ResponseEntity<ErrorResponse> handleJsonParseError(HttpMessageNotReadableException exception) {
+        log.error("Exception caught in handleJsonParseError", exception);
+        return buildErrorResponse("Invalid JSON format in request body", BAD_REQUEST);
     }
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationException(MethodArgumentNotValidException exception) {
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception) {
+        log.error("Exception caught in handleValidationException", exception);
         String message = exception.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": "
                         + error.getDefaultMessage())
-                .collect(Collectors.joining("|\n"));
-        return ResponseEntity.badRequest().body(new ErrorResponse(message));
+                .collect(Collectors.joining("\n"));
+        return buildErrorResponse(message, BAD_REQUEST);
     }
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
-        String message = e.getConstraintViolations().stream()
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException exception) {
+        log.error("Exception caught in handleConstraintViolationException", exception);
+        String message = exception.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
+                .sorted()
                 .collect(Collectors.joining("\n"));
-        return ResponseEntity.badRequest().body(new ErrorResponse(message));
+        return buildErrorResponse(message, BAD_REQUEST);
     }
 
     @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
-    public ResponseEntity<?> handleErrorResponses(Exception e) {
-        return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+    public ResponseEntity<ErrorResponse> handleErrorResponses(Exception exception) {
+        log.error("Exception caught in handleErrorResponses", exception);
+        return buildErrorResponse(exception.getMessage(), BAD_REQUEST);
     }
 
     @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<?> handleNotFoundException(Exception e){
-        String message = e.getMessage();
-        if(message == null) {
-            message = "Not found!";
-        }
-        return new ResponseEntity<>(new ErrorResponse(message), HttpStatus.NOT_FOUND);
+    public ResponseEntity<ErrorResponse> handleNotFoundException(EntityNotFoundException exception){
+        log.error("Exception caught in handleNotFoundException", exception);
+        String message = exception.getMessage() == null ? "Not found!" : exception.getMessage();
+        return buildErrorResponse(message, NOT_FOUND);
     }
 
+    @ResponseStatus(BAD_REQUEST)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<?> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException exception) {
-        return ResponseEntity.badRequest()
-                .body("Invalid value for parameter '" + exception.getName() + "': " + exception.getValue());
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException exception) {
+        log.error("Exception caught in handleMethodArgumentTypeMismatch", exception);
+        return buildErrorResponse("Invalid value for parameter '" +
+                exception.getName() + "': " + exception.getValue(), BAD_REQUEST);
     }
 
+    @ResponseStatus(CONFLICT)
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<?> handleDataIntegrityViolation() {
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse("Failed to save entity because some rules where neglected."));
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException exception) {
+        log.error("Exception caught in handleDataIntegrityViolation", exception);
+        return buildErrorResponse("Failed to save entity because some rules where neglected.", CONFLICT);
     }
 
+    @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<?> handleNoHandlerFound(NoHandlerFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse("No endpoint " + ex.getHttpMethod() + " " + ex.getRequestURL()));
+    public ResponseEntity<ErrorResponse> handleNoHandlerFound(NoHandlerFoundException exception) {
+        log.error("Exception caught in handleNoHandlerFound", exception);
+        return buildErrorResponse("No endpoint " + exception.getHttpMethod() + " " + exception.getRequestURL(), NOT_FOUND);
     }
 
+    @ResponseStatus(CONFLICT)
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<?> handleUserAlreadyExists(UserAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse(ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException exception) {
+        log.error("Exception caught in handleUserAlreadyExists", exception);
+        return buildErrorResponse(exception.getMessage(), CONFLICT);
+    }
+
+    private ResponseEntity<ErrorResponse> buildErrorResponse(String message, HttpStatus httpStatus) {
+        return  ResponseEntity.status(httpStatus).body(new ErrorResponse(message));
     }
 }
