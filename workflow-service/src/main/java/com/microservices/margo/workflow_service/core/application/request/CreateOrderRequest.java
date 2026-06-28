@@ -5,12 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 import static com.microservices.margo.workflow_service.core.domain.validation.ValidationConstants.MAX_NAME_LENGTH;
 
+@Builder(toBuilder = true)
 public record CreateOrderRequest(
         @NotNull(message = "ownerUserId is required")
         UUID ownerUserId,
