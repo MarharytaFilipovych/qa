@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
 
+import static com.microservices.margo.order_service.data.Constants.SLASH;
 import static com.microservices.margo.order_service.data.OrderData.TOO_LONG_ITEM_NAME;
 import static com.microservices.margo.order_service.data.OrderData.createOrderRequest;
 import static com.microservices.margo.order_service.data.OrderData.getOrder;
@@ -45,7 +46,6 @@ class OrderControllerTest {
 
     private static final String ORDERS_PATH = "/orders";
     private static final String STATUS_SUB_PATH = "/status";
-    private static final String SLASH = "/";
 
     private static final Order ORDER = getOrder();
     private static final CreateOrderRequest CREATE_ORDER_REQUEST = createOrderRequest();

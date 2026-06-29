@@ -21,7 +21,7 @@ public final class UserData {
     private static final LocalDateTime CREATED_AT = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     private static final UUID USER_ID = UUID.randomUUID();
     public static final String INCORRECT_VALUE = "hiiiiiiiii";
-    public static final String TOO_LONG_EMAIL = "a".repeat(91) + "@gmail.com";
+    private static final String TOO_LONG_EMAIL = "a".repeat(91) + "@gmail.com";
     public static final String TOO_LONG_VALUE = "b".repeat(256);
 
     public static User getUser() {

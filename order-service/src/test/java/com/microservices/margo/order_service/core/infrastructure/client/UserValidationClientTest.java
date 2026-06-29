@@ -98,6 +98,18 @@ class UserValidationClientTest {
                         .isEqualTo(HttpStatus.GATEWAY_TIMEOUT));
     }
 
+    @Test
+    void fallback_shouldRethrow400WhenIllegalArgumentException() {
+        // Arrange
+        String error = "User was not found!";
+        IllegalArgumentException e = new IllegalArgumentException(error);
+
+        // Act & Assert
+        assertThatThrownBy(() -> client.fallback(e, USER_ID))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(error);
+    }
+
     private RestClient.ResponseSpec mockRequest() {
         RestClient.RequestHeadersUriSpec<?> uriSpec = mock(RestClient.RequestHeadersUriSpec.class);
         RestClient.RequestHeadersSpec<?> headersSpec = mock(RestClient.RequestHeadersSpec.class);
