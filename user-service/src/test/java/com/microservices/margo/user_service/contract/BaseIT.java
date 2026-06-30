@@ -25,7 +25,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class BaseIT {
 
     public static final String USERS_URL = "/api/users";
-    public static final String SLASH = "/";
 
     @Autowired
     private UserRepository userRepository;

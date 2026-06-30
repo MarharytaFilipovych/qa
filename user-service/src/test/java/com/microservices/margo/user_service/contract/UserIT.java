@@ -2,6 +2,7 @@ package com.microservices.margo.user_service.contract;
 
 import io.restassured.response.Response;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -15,10 +16,12 @@ import org.springframework.http.MediaType;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import static com.microservices.margo.user_service.data.Constants.SLASH;
 import static com.microservices.margo.user_service.data.UserData.TOO_LONG_VALUE;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DisplayName("UserService Contract Tests")
 public class UserIT extends BaseIT {
 
     private static final String CREATE_USER_JSON = "integration/request/create_user.json";

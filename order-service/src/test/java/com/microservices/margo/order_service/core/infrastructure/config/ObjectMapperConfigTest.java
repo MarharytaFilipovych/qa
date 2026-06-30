@@ -2,6 +2,7 @@ package com.microservices.margo.order_service.core.infrastructure.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,8 @@ class ObjectMapperConfigTest {
     }
 
     @Test
-    void objectMapper_shouldMakeUseOfJavaTimeModule() throws Exception {
+    @SneakyThrows
+    void objectMapper_shouldMakeUseOfJavaTimeModule() {
         // Arrange
         LocalDateTime time = LocalDateTime.of(2006, 8, 2, 0, 34, 6);
 

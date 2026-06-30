@@ -9,6 +9,7 @@ import com.microservices.margo.order_service.core.application.usecase.UpdateOrde
 import com.microservices.margo.order_service.core.domain.Order;
 import com.microservices.margo.order_service.core.domain.OrderStatus;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,7 +25,10 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
 
+import static com.microservices.margo.order_service.data.Constants.MESSAGE_IN_PAYLOAD;
+import static com.microservices.margo.order_service.data.Constants.ORDER_PATH;
 import static com.microservices.margo.order_service.data.Constants.SLASH;
+import static com.microservices.margo.order_service.data.Constants.STATUS_PATH;
 import static com.microservices.margo.order_service.data.OrderData.TOO_LONG_ITEM_NAME;
 import static com.microservices.margo.order_service.data.OrderData.createOrderRequest;
 import static com.microservices.margo.order_service.data.OrderData.getOrder;
@@ -43,9 +47,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("OrderController tests")
 class OrderControllerTest {
-
-    private static final String ORDERS_PATH = "/orders";
-    private static final String STATUS_SUB_PATH = "/status";
 
     private static final Order ORDER = getOrder();
     private static final CreateOrderRequest CREATE_ORDER_REQUEST = createOrderRequest();
@@ -66,23 +67,25 @@ class OrderControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void create_shouldReturnCreatedOrderWithLocation() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnCreatedOrderWithLocation() {
         // Arrange
         when(createOrderUseCase.execute(CREATE_ORDER_REQUEST)).thenReturn(ORDER);
 
         // Act & Assert
         andExpectOrder(
-                mockMvc.perform(post(ORDERS_PATH)
+                mockMvc.perform(post(ORDER_PATH)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(CREATE_ORDER_REQUEST)))
                         .andExpect(status().isCreated())
-                        .andExpect(header().string("Location", containsString(ORDERS_PATH + "/" + ORDER.id())))
+                        .andExpect(header().string("Location", containsString(ORDER_PATH + "/" + ORDER.id())))
         );
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @NullAndEmptySource
-    void create_shouldReturnBadRequestWhenItemNameIsAbsent(String itemName) throws Exception {
+    void create_shouldReturnBadRequestWhenItemNameIsAbsent(String itemName) {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().itemName(itemName).build();
 
@@ -91,7 +94,8 @@ class OrderControllerTest {
     }
 
     @Test
-    void create_shouldReturnBadRequestWhenItemNameIsTooLong() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnBadRequestWhenItemNameIsTooLong() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().itemName(TOO_LONG_ITEM_NAME).build();
 
@@ -100,7 +104,8 @@ class OrderControllerTest {
     }
 
     @Test
-    void create_shouldReturnBadRequestWhenQuantityIsZero() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnBadRequestWhenQuantityIsZero() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().quantity(0).build();
 
@@ -109,7 +114,8 @@ class OrderControllerTest {
     }
 
     @Test
-    void create_shouldReturnBadRequestWhenPriceIsNull() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnBadRequestWhenPriceIsNull() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().price(null).build();
 
@@ -118,7 +124,8 @@ class OrderControllerTest {
     }
 
     @Test
-    void create_shouldReturnBadRequestWhenPriceIsNegative() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnBadRequestWhenPriceIsNegative() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().price(new BigDecimal("-1")).build();
 
@@ -127,7 +134,8 @@ class OrderControllerTest {
     }
 
     @Test
-    void create_shouldReturnBadRequestWhenOwnerUserIdIsNull() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnBadRequestWhenOwnerUserIdIsNull() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().ownerUserId(null).build();
 
@@ -136,51 +144,55 @@ class OrderControllerTest {
     }
 
     @Test
-    void getById_shouldReturnOrder() throws Exception {
+    @SneakyThrows
+    void getById_shouldReturnOrder()  {
         // Arrange
         when(getOrderUseCase.execute(ORDER.id())).thenReturn(ORDER);
 
         // Act & Assert
         andExpectOrder(
-                mockMvc.perform(get(ORDERS_PATH + SLASH + ORDER.id()))
-                        .andExpect(status().isOk())
-        );
+                mockMvc.perform(get(ORDER_PATH + SLASH + ORDER.id()))
+                        .andExpect(status().isOk()));
     }
 
     @Test
-    void getById_shouldReturn404WhenNotFound() throws Exception {
+    @SneakyThrows
+    void getById_shouldReturn404WhenNotFound() {
         // Arrange
         String msg = "Order not found";
         when(getOrderUseCase.execute(ORDER.id())).thenThrow(new EntityNotFoundException(msg));
 
         // Act & Assert
-        mockMvc.perform(get(ORDERS_PATH + SLASH + ORDER.id()))
+        mockMvc.perform(get(ORDER_PATH + SLASH + ORDER.id()))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(msg));
+                .andExpect(jsonPath(MESSAGE_IN_PAYLOAD).value(msg));
     }
 
     @Test
     @DisplayName("getById should return 400 when id is not a valid UUID")
-    void getById_shouldReturn400WhenIdIsInvalid() throws Exception {
+    @SneakyThrows
+    void getById_shouldReturn400WhenIdIsInvalid() {
         // Act & Assert
-        mockMvc.perform(get(ORDERS_PATH + "/not-a-uuid"))
+        mockMvc.perform(get(ORDER_PATH + "/not-a-uuid"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void updateStatus_shouldReturnNoContent() throws Exception {
+    @SneakyThrows
+    void updateStatus_shouldReturnNoContent() {
         // Arrange
         UpdateOrderStatusRequest request = updateStatusRequest(OrderStatus.CONFIRMED);
 
         // Act & Assert
-        mockMvc.perform(patch(ORDERS_PATH + SLASH + ORDER.id() + STATUS_SUB_PATH)
+        mockMvc.perform(patch(ORDER_PATH + SLASH + ORDER.id() + STATUS_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    void updateStatus_shouldReturn400WhenNewStatusIsNull() throws Exception {
+    @SneakyThrows
+    void updateStatus_shouldReturn400WhenNewStatusIsNull() {
         // Arrange
         UpdateOrderStatusRequest request = new UpdateOrderStatusRequest(null);
 
@@ -189,7 +201,8 @@ class OrderControllerTest {
     }
 
     @Test
-    void updateStatus_shouldReturn404WhenOrderNotFound() throws Exception {
+    @SneakyThrows
+    void updateStatus_shouldReturn404WhenOrderNotFound() {
         // Arrange
         UpdateOrderStatusRequest request = updateStatusRequest(OrderStatus.CONFIRMED);
         String errorMessage = "Order not found";
@@ -201,7 +214,8 @@ class OrderControllerTest {
     }
 
     @Test
-    void updateStatus_shouldReturn400WhenTransitionIsIllegal() throws Exception {
+    @SneakyThrows
+    void updateStatus_shouldReturn400WhenTransitionIsIllegal() {
         // Arrange
         UpdateOrderStatusRequest request = updateStatusRequest(OrderStatus.DELIVERED);
         String errorMessage = "Cannot change order status from PENDING to DELIVERED";
@@ -215,20 +229,21 @@ class OrderControllerTest {
     private void assertBadRequest(UpdateOrderStatusRequest request, String expectedMessage) throws Exception {
        assertNegativeStatus(request, expectedMessage, HttpStatus.BAD_REQUEST);
     }
+
     private void assertNegativeStatus(UpdateOrderStatusRequest request, String expectedMessage, HttpStatus httpStatus) throws Exception {
-        mockMvc.perform(patch(ORDERS_PATH + SLASH + ORDER.id() + STATUS_SUB_PATH)
+        mockMvc.perform(patch(ORDER_PATH + SLASH + ORDER.id() + STATUS_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().is(httpStatus.value()))
-                .andExpect(jsonPath("$.message").value(expectedMessage));
+                .andExpect(jsonPath(MESSAGE_IN_PAYLOAD).value(expectedMessage));
     }
 
     private void assertBadRequest(CreateOrderRequest request, String expectedMessage) throws Exception {
-        mockMvc.perform(post(ORDERS_PATH)
+        mockMvc.perform(post(ORDER_PATH)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(expectedMessage));
+                .andExpect(jsonPath(MESSAGE_IN_PAYLOAD).value(expectedMessage));
     }
 
     private void andExpectOrder(ResultActions actions) throws Exception {

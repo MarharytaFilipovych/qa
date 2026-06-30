@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 public final class OrderData {
 
-    private static final UUID ORDER_ID = UUID.randomUUID();
+    public static final UUID ORDER_ID = UUID.randomUUID();
     private static final UUID OWNER_USER_ID = UUID.randomUUID();
     private static final String ITEM_NAME = "Latte";
     private static final int QUANTITY = 2;

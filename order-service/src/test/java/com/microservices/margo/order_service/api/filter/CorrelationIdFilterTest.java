@@ -1,6 +1,6 @@
 package com.microservices.margo.order_service.api.filter;
 
-import jakarta.servlet.ServletException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.IOException;
 import java.util.UUID;
 
 import static com.microservices.margo.order_service.data.Constants.CORRELATION_ID;
@@ -38,10 +37,10 @@ class CorrelationIdFilterTest {
     }
 
     @Test
+    @SneakyThrows
     @DisplayName("Filter should extract correlation id from the request header if it exists, then put it to MDC " +
             "and the response header, call next chain and finally remove it from MDC")
-    void doFilterInternal_shouldExtractCorrelationIdFromHeaderIfExists()
-            throws ServletException, IOException {
+    void doFilterInternal_shouldExtractCorrelationIdFromHeaderIfExists() {
         // Arrange
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(CORRELATION_ID_HEADER, CORRELATION_ID);
@@ -62,11 +61,11 @@ class CorrelationIdFilterTest {
 
     @ParameterizedTest
     @NullAndEmptySource
+    @SneakyThrows
     @ValueSource(strings = {"  ", "\n", "\t"})
     @DisplayName("Filter should generate correlation id if it does not exist in the request header, then put it to MDC " +
             "and the response header, call next chain and finally remove it from MDC")
-    void doFilterInternal_shouldGenerateCorrelationIdIfDoesNotExist(String correlationId)
-            throws ServletException, IOException {
+    void doFilterInternal_shouldGenerateCorrelationIdIfDoesNotExist(String correlationId) {
         // Arrange
         MockHttpServletRequest request = new MockHttpServletRequest();
         if (correlationId != null) {

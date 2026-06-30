@@ -7,6 +7,7 @@ import com.microservices.margo.user_service.core.application.usecase.CreateUserU
 import com.microservices.margo.user_service.core.application.usecase.GetUserUseCase;
 import com.microservices.margo.user_service.core.domain.User;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,6 +22,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDate;
+
+import static com.microservices.margo.user_service.data.Constants.MESSAGE_IN_PAYLOAD;
+import static com.microservices.margo.user_service.data.Constants.SLASH;
+import static com.microservices.margo.user_service.data.Constants.USER_PATH;
 import static com.microservices.margo.user_service.data.UserData.TOO_LONG_VALUE;
 import static com.microservices.margo.user_service.data.UserData.createUserRequest;
 import static com.microservices.margo.user_service.data.UserData.getUser;
@@ -37,7 +42,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("UserController tests")
 class UserControllerTest {
-    private static final String USER_PATH = "/users";
     private static final User USER = getUser();
     private static final CreateUserRequest CREATE_USER_REQUEST = createUserRequest();
 
@@ -54,7 +58,8 @@ class UserControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void create_shouldReturnCreatedUserWithLocation() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnCreatedUserWithLocation() {
         // Arrange
         when(createUserUseCase.execute(CREATE_USER_REQUEST)).thenReturn(USER);
 
@@ -62,12 +67,13 @@ class UserControllerTest {
         andExpectUser(mockMvc.perform(post(USER_PATH).contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(CREATE_USER_REQUEST)))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", containsString(USER_PATH + "/" + USER.id()))));
+                .andExpect(header().string("Location", containsString(USER_PATH + SLASH + USER.id()))));
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @MethodSource("com.microservices.margo.user_service.data.UserData#underageBirthDates")
-    void create_shouldReturnBadRequestWhenBirthDateIsInvalid(LocalDate birthDate) throws Exception {
+    void create_shouldReturnBadRequestWhenBirthDateIsInvalid(LocalDate birthDate) {
         // Arrange
         CreateUserRequest createUserRequest = CREATE_USER_REQUEST.toBuilder().birthDate(birthDate).build();
 
@@ -76,8 +82,9 @@ class UserControllerTest {
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @NullAndEmptySource
-    void create_shouldReturnBadRequestWhenNameIsNotProvided(String name) throws Exception {
+    void create_shouldReturnBadRequestWhenNameIsNotProvided(String name) {
         // Arrange
         CreateUserRequest createUserRequest = CREATE_USER_REQUEST.toBuilder().name(name).build();
 
@@ -86,7 +93,8 @@ class UserControllerTest {
     }
 
     @Test
-    void create_shouldReturnBadRequestWhenNameIsTooLong() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnBadRequestWhenNameIsTooLong() {
         // Arrange
         CreateUserRequest createUserRequest = CREATE_USER_REQUEST.toBuilder().name(TOO_LONG_VALUE).build();
 
@@ -95,8 +103,9 @@ class UserControllerTest {
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @NullAndEmptySource
-    void create_shouldReturnBadRequestWhenSurnameIsNotProvided(String surname) throws Exception {
+    void create_shouldReturnBadRequestWhenSurnameIsNotProvided(String surname) {
         // Arrange
         CreateUserRequest createUserRequest = CREATE_USER_REQUEST.toBuilder().surname(surname).build();
 
@@ -105,7 +114,8 @@ class UserControllerTest {
     }
 
     @Test
-    void create_shouldReturnBadRequestWhenSurnameIsTooLong() throws Exception {
+    @SneakyThrows
+    void create_shouldReturnBadRequestWhenSurnameIsTooLong() {
         // Arrange
         CreateUserRequest createUserRequest = CREATE_USER_REQUEST.toBuilder().surname(TOO_LONG_VALUE).build();
 
@@ -114,8 +124,9 @@ class UserControllerTest {
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @NullAndEmptySource
-    void create_shouldReturnBadRequestWhenEmailIsAbsent(String email) throws Exception {
+    void create_shouldReturnBadRequestWhenEmailIsAbsent(String email) {
         // Arrange
         CreateUserRequest createUserRequest = CREATE_USER_REQUEST.toBuilder().email(email).build();
 
@@ -124,8 +135,9 @@ class UserControllerTest {
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @MethodSource("com.microservices.margo.user_service.data.UserData#incorrectEmails")
-    void create_shouldReturnBadRequestWhenEmailIsInvalid(String email) throws Exception {
+    void create_shouldReturnBadRequestWhenEmailIsInvalid(String email) {
         // Arrange
         CreateUserRequest createUserRequest = CREATE_USER_REQUEST.toBuilder().email(email).build();
 
@@ -134,8 +146,9 @@ class UserControllerTest {
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @MethodSource("com.microservices.margo.user_service.data.UserData#incorrectPhones")
-    void create_shouldReturnBadRequestWhenPhoneIsInvalid(String phone) throws Exception {
+    void create_shouldReturnBadRequestWhenPhoneIsInvalid(String phone) {
         // Arrange
         CreateUserRequest createUserRequest = CREATE_USER_REQUEST.toBuilder().phone(phone).build();
 
@@ -144,7 +157,8 @@ class UserControllerTest {
     }
 
     @Test
-    void create_shouldPropagateUserExistExceptionsFromServiceAs409() throws Exception {
+    @SneakyThrows
+    void create_shouldPropagateUserExistExceptionsFromServiceAs409() {
         // Arrange
         String errorMessage = "User exists!";
         when(createUserUseCase.execute(CREATE_USER_REQUEST)).thenThrow(new UserAlreadyExistsException(errorMessage));
@@ -153,42 +167,44 @@ class UserControllerTest {
         mockMvc.perform(post(USER_PATH).contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(CREATE_USER_REQUEST)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value(errorMessage));
+                .andExpect(jsonPath(MESSAGE_IN_PAYLOAD).value(errorMessage));
     }
 
     @Test
-    void getById_shouldReturnUser() throws Exception {
+    @SneakyThrows
+    void getById_shouldReturnUser() {
         // Arrange
         when(getUserUseCase.execute(USER.id())).thenReturn(USER);
 
         // Act & Assert
-        andExpectUser(mockMvc.perform(get(USER_PATH + "/" + USER.id()))
+        andExpectUser(mockMvc.perform(get(USER_PATH + SLASH + USER.id()))
                 .andExpect(status().isOk()));
 
     }
 
     @Test
-    void getById_shouldPropagateNotFoundAs404() throws Exception {
+    @SneakyThrows
+    void getById_shouldPropagateNotFoundAs404() {
         // Arrange
         String errorMessage = "Not found!";
         when(getUserUseCase.execute(USER.id())).thenThrow(new EntityNotFoundException(errorMessage));
 
         // Act & Assert
-        mockMvc.perform(get(USER_PATH + "/" + USER.id()))
+        mockMvc.perform(get(USER_PATH + SLASH + USER.id()))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(errorMessage));
+                .andExpect(jsonPath(MESSAGE_IN_PAYLOAD).value(errorMessage));
     }
 
     private void assertBadRequest(CreateUserRequest createUserRequest, String expectedErrorMessage) throws Exception {
         mockMvc.perform(post(USER_PATH).contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createUserRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(expectedErrorMessage));
+                .andExpect(jsonPath(MESSAGE_IN_PAYLOAD).value(expectedErrorMessage));
         verifyNoInteractions(createUserUseCase);
     }
 
-    private ResultActions andExpectUser(ResultActions resultActions) throws Exception {
-        return resultActions
+    private void andExpectUser(ResultActions resultActions) throws Exception {
+        resultActions
                 .andExpect(jsonPath("$.id").value(USER.id().toString()))
                 .andExpect(jsonPath("$.name").value(USER.name()))
                 .andExpect(jsonPath("$.surname").value(USER.surname()))
