@@ -28,7 +28,7 @@ server:
   servlet.context-path: /api
   port: 8088
 
-user-service.users-url: ${USERS_URL:http:/localhost:8080/api/users}
+user-service.users-url: ${USERS_URL:http://localhost:8080/api/users}
 
 rabbitmq:
   exchange: order

@@ -5,12 +5,14 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
 import java.time.LocalDate;
 
 import static com.microservices.margo.user_service.core.domain.validation.ValidationConstants.MAX_EMAIL_LENGTH;
 import static com.microservices.margo.user_service.core.domain.validation.ValidationConstants.MAX_NAME_LENGTH;
 
+@Builder(toBuilder = true)
 public record CreateUserRequest(
 
         @NotBlank(message = "Name must not be blank")
@@ -30,6 +32,5 @@ public record CreateUserRequest(
 
         @NotBlank (message = "Email must be specified")
         @Email
-        @Size(max = MAX_EMAIL_LENGTH, message = "Email can at most contain 100 symbols")
         String email
 ) {}

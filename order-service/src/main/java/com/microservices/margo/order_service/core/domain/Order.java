@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -33,11 +34,7 @@ public record Order(
         OrderStatus status,
         LocalDateTime createdAt
 ) {
-    public Order {
-        if (status == null) {
-            status = OrderStatus.PENDING;
-        }
-    }
+
     public Order changeStatus(OrderStatus newStatus) {
         if (!status.canTransitionTo(newStatus)) {
             throw new IllegalStateException(

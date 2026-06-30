@@ -28,6 +28,7 @@ public class UserValidationClient {
 
     @Retryable(retryFor = ResourceAccessException.class,
             maxAttemptsExpression = "${retry.maxAttempts}",
+            noRetryFor = IllegalArgumentException.class,
             backoff = @Backoff(delayExpression = "${retry.backoff-delay}"))
     public void validateUserExists(UUID userId) {
         restClient.get()
@@ -52,5 +53,11 @@ public class UserValidationClient {
         }
         return new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                 "Users service is unavailable after retries");
+    }
+
+    @Recover
+    public void fallback(IllegalArgumentException e, UUID userId) {
+        log.error("User not found: {}", userId);
+        throw e;
     }
 }

@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Builder
+@Builder(toBuilder = true)
 @Data
 @Table(name = "orders")
 @AllArgsConstructor
@@ -32,7 +32,7 @@ public class OrderEntity {
     private String itemName;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private int quantity;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
