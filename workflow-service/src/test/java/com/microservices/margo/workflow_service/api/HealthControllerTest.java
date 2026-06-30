@@ -1,5 +1,6 @@
 package com.microservices.margo.workflow_service.api;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,7 +31,8 @@ class HealthControllerTest {
     private HealthEndpoint healthEndpoint;
 
     @Test
-    void whenHealthEndpointStatusIsUp_shouldReturnOk() throws Exception {
+    @SneakyThrows
+    void whenHealthEndpointStatusIsUp_shouldReturnOk() {
         // Arrange
         when(healthEndpoint.health()).thenReturn(Health.up().build());
 
@@ -40,8 +42,9 @@ class HealthControllerTest {
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @MethodSource("errorStatuses")
-    void whenHealthEndpointStatusIsDown_shouldReturn503Code(Health health) throws Exception {
+    void whenHealthEndpointStatusIsDown_shouldReturn503Code(Health health) {
         // Arrange
         when(healthEndpoint.health()).thenReturn(health);
 

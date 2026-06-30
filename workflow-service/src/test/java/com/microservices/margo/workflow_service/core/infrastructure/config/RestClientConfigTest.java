@@ -1,5 +1,6 @@
 package com.microservices.margo.workflow_service.core.infrastructure.config;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,7 +37,8 @@ class RestClientConfigTest {
     private MockClientHttpResponse response;
 
     @BeforeEach
-    void setUp() throws IOException {
+    @SneakyThrows
+    void setUp() {
         headers = new HttpHeaders();
         request = mock(HttpRequest.class);
         when(request.getHeaders()).thenReturn(headers);
@@ -59,7 +61,8 @@ class RestClientConfigTest {
     }
 
     @Test
-    void correlationIdInterceptor_shouldSetHeaderWhenCorrelationIdPresentInMdc() throws IOException {
+    @SneakyThrows
+    void correlationIdInterceptor_shouldSetHeaderWhenCorrelationIdPresentInMdc() {
         // Arrange
         MDC.put(MDC_KEY, CORRELATION_ID);
 
@@ -71,7 +74,8 @@ class RestClientConfigTest {
     }
 
     @Test
-    void correlationIdInterceptor_shouldNotSetHeaderWhenCorrelationIdAbsentFromMdc() throws IOException {
+    @SneakyThrows
+    void correlationIdInterceptor_shouldNotSetHeaderWhenCorrelationIdAbsentFromMdc() {
         // Act
         try (ClientHttpResponse ignored = interceptor().intercept(request, new byte[0], execution)) {
             // Assert

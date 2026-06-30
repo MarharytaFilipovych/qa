@@ -6,6 +6,7 @@ import com.microservices.margo.workflow_service.core.application.usecase.GetWork
 import com.microservices.margo.workflow_service.core.application.usecase.StartCreateOrderWorkflowUseCase;
 import com.microservices.margo.workflow_service.core.domain.Workflow;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,7 +54,8 @@ class WorkflowControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void startPlaceOrder_shouldReturn202AndWorkflow() throws Exception {
+    @SneakyThrows
+    void startPlaceOrder_shouldReturn202AndWorkflow() {
         // Arrange
         when(startCreateOrderWorkflow.execute(CREATE_ORDER_REQUEST)).thenReturn(WORKFLOW);
 
@@ -67,7 +69,8 @@ class WorkflowControllerTest {
     }
 
     @Test
-    void startPlaceOrder_shouldReturn400WhenOwnerUserIdIsNull() throws Exception {
+    @SneakyThrows
+    void startPlaceOrder_shouldReturn400WhenOwnerUserIdIsNull() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().ownerUserId(null).build();
 
@@ -76,9 +79,10 @@ class WorkflowControllerTest {
     }
 
     @ParameterizedTest
+    @SneakyThrows
     @NullAndEmptySource
     @ValueSource(strings = {"   ", "\n", "\t"})
-    void startPlaceOrder_shouldReturn400WhenItemNameIsBlank(String itemName) throws Exception {
+    void startPlaceOrder_shouldReturn400WhenItemNameIsBlank(String itemName) {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().itemName(itemName).build();
 
@@ -87,7 +91,8 @@ class WorkflowControllerTest {
     }
 
     @Test
-    void startPlaceOrder_shouldReturn400WhenQuantityIsZero() throws Exception {
+    @SneakyThrows
+    void startPlaceOrder_shouldReturn400WhenQuantityIsZero() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().quantity(0).build();
 
@@ -96,7 +101,8 @@ class WorkflowControllerTest {
     }
 
     @Test
-    void startPlaceOrder_shouldReturn400WhenPriceIsNull() throws Exception {
+    @SneakyThrows
+    void startPlaceOrder_shouldReturn400WhenPriceIsNull() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().price(null).build();
 
@@ -105,7 +111,8 @@ class WorkflowControllerTest {
     }
 
     @Test
-    void startPlaceOrder_shouldReturn400WhenPriceIsNegative() throws Exception {
+    @SneakyThrows
+    void startPlaceOrder_shouldReturn400WhenPriceIsNegative() {
         // Arrange
         CreateOrderRequest request = CREATE_ORDER_REQUEST.toBuilder().price(new BigDecimal("-1")).build();
 
@@ -114,7 +121,8 @@ class WorkflowControllerTest {
     }
 
     @Test
-    void getById_shouldReturnWorkflow() throws Exception {
+    @SneakyThrows
+    void getById_shouldReturnWorkflow() {
         // Arrange
         when(getWorkflow.execute(WORKFLOW.id())).thenReturn(WORKFLOW);
 
@@ -126,7 +134,8 @@ class WorkflowControllerTest {
     }
 
     @Test
-    void getById_shouldReturn404WhenWorkflowNotFound() throws Exception {
+    @SneakyThrows
+    void getById_shouldReturn404WhenWorkflowNotFound() {
         // Arrange
         String errorMessage = "Workflow not found: " + WORKFLOW.id();
         when(getWorkflow.execute(WORKFLOW.id())).thenThrow(new EntityNotFoundException(errorMessage));
@@ -138,8 +147,9 @@ class WorkflowControllerTest {
     }
 
     @Test
+    @SneakyThrows
     @DisplayName("getById should return 400 when workflowId is not a valid UUID")
-    void getById_shouldReturn400WhenIdIsInvalid() throws Exception {
+    void getById_shouldReturn400WhenIdIsInvalid() {
         // Act & Assert
         mockMvc.perform(get(WORKFLOWS_PATH + "/not-a-uuid"))
                 .andExpect(status().isBadRequest());
