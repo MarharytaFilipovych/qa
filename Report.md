@@ -1,4 +1,6 @@
-## Report 
+# Report 
+
+## Unit Tests
 
 #### My prompt to Claude to get the tests:
 
@@ -62,3 +64,40 @@ I explored the test coverage with **[Jacoco](https://www.baeldung.com/jacoco)** 
 * 80 instructions (100%)
 * 9 cyclomatic complexity
 
+## Contract Tests
+
+These tests were implemented for the **order** and **user** services within `contract` _test_ package.
+
+## Security Tests
+
+These tests were also implemented for the **order** and **user** services within `security` _test_ package.
+
+## Purely AI Generated Unit Tests
+
+These tests live on the branch `ai-tests`.
+
+I used **claude** for those purposes.
+
+_My thoughts are not straightforward. On one side, it did generate lots of tests. On another side, some of their quality is not the highest._
+
+### Advantages
+
+1) Relatively fast (at least definitely faster than doing it manually)
+2) Most of them work, so the only thing you need to do is to adjust those that don't work and maybe clean some things.
+3) Time-saver
+
+### Disadvantages
+
+1) To get full coverage (or something close to full) I had to ask claude 3 times, even though I stated my need in the first prompt.
+2) Some tests do not work due to various reasons:
+    * unnecessary stubbings `UnnecessaryStubbingException`
+    * misconfigurations: `NotificationServiceApplicationTest`, `WorkflowServiceApplicationTest` and `UserServiceApplicationTest` failed to load the application context
+    * _wanted but not invoked_: AI failed to understand where the method should have been invoked
+    * assertion errors (not very common): occurred within `objectMapper_serializesLocalDateTime`, `isValid_returnsFalse_whenTooYoung`, `isValid_returnsFalse_whenFutureDate` -> incorrect assertion
+3) extensive love to `any()` arguments
+4) no love for constants
+5) common usage of deprecated annotations: `@MockBean` instead of `@Mock`
+6) strange comments instead of `//Arrange //Act //Assert` or `//Given //When //Then` (even though I did not ask to put those, but still)
+
+**Conclusion**: although, my list of disadvantages is bigger than that of advantages, I can confidently state that you should use AI for test generation because it's definitely a time-saver.
+However, you have to define a clear test generation strategy (prompt) and always carefully review and adjust the outcome, so that your tests are clear, dry and cover all usecases.
